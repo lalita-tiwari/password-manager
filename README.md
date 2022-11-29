@@ -52,7 +52,7 @@ This repository contanis code for a password manager application which is create
 ## Technical Details:
 
 - The application is written in Swift5 using xCode and is compatible with MacOS and IOS App Store. Tested for Macos Monterey and IOS 15
-- All app data will be store locally on ~/Library/Preferences/$bundleid.plist
+- All app data will be stored locally on ~/Library/Preferences/$bundleid.plist
 - All the app data is AES128 encrypted using a unique 16 bit hash key which is randomly generated first time user uses the application:
 
 ```
@@ -73,7 +73,7 @@ This repository contanis code for a password manager application which is create
     }
 ```
 - So the decryption of data outside the app is immpossible.
-- For encryption AES128 algorithm is using with Swift Crypto Framework. kCCOptionPKCS7Padding is used for passing to match 128 bytes.
+- For encryption AES128 algorithm is used with Swift Crypto Framework. kCCOptionPKCS7Padding is used for padding to match 128 bytes.
 
 ```
 func aesCBCEncrypt(str_data:String, str_keyData:String) throws -> Data {
