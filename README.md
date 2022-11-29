@@ -1,4 +1,4 @@
-# CyberSecurityProject-PasswordManager
+# Password Manager Application
 
 
 This repository contanis code for a password manager application which is created to support mac OS.
@@ -49,3 +49,123 @@ This repository contanis code for a password manager application which is create
 ![image](https://user-images.githubusercontent.com/83514861/204664246-db1de109-84df-40f0-b916-74b45a0f857e.png)
 
 
+## Technical Details:
+
+- The application is written in Swift5 using xCode and is compatible with MacOS and IOS App Store. Tested for Macos Monterey and IOS 15
+- All app data will be store locally on ~/Library/Preferences/$bundleid.plist
+- All the app data is AES128 encrypted using a unique 16 bit hash key which is randomly generated first time user uses the application:
+
+```
+    func randomString(length: Int) -> String {
+
+        let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()_-+=:<>,.?"
+        let len = UInt32(letters.length)
+
+        var randomString = ""
+
+        for _ in 0 ..< length {
+            let rand = arc4random_uniform(len)
+            var nextChar = letters.character(at: Int(rand))
+            randomString += NSString(characters: &nextChar, length: 1) as String
+        }
+
+        return randomString
+    }
+```
+- So the decryption of data outside the app is immpossible.
+- For encryption AES128 algorithm is using with Swift Crypto Framework. kCCOptionPKCS7Padding is used for passing to match 128 bytes.
+
+```
+func aesCBCEncrypt(str_data:String, str_keyData:String) throws -> Data {
+        
+        let data:Data = str_data.data(using:String.Encoding.utf8)!
+        let keyData:Data = str_keyData.data(using:String.Encoding.utf8)!
+        let keyLength = keyData.count
+        let validKeyLengths = [kCCKeySizeAES128, kCCKeySizeAES192, kCCKeySizeAES256]
+        if (validKeyLengths.contains(keyLength) == false) {
+            throw AESError.KeyError(("Invalid key length", keyLength))
+        }
+
+        let ivSize = kCCBlockSizeAES128;
+        let cryptLength = size_t(ivSize + data.count + kCCBlockSizeAES128)
+        var cryptData = Data(count:cryptLength)
+
+        let status = cryptData.withUnsafeMutableBytes {ivBytes in
+            SecRandomCopyBytes(kSecRandomDefault, kCCBlockSizeAES128, ivBytes)
+        }
+        if (status != 0) {
+            throw AESError.IVError(("IV generation failed", Int(status)))
+        }
+
+        var numBytesEncrypted :size_t = 0
+        let options   = CCOptions(kCCOptionPKCS7Padding)
+
+        let cryptStatus = cryptData.withUnsafeMutableBytes {cryptBytes in
+            data.withUnsafeBytes {dataBytes in
+                keyData.withUnsafeBytes {keyBytes in
+                    CCCrypt(CCOperation(kCCEncrypt),
+                            CCAlgorithm(kCCAlgorithmAES),
+                            options,
+                            keyBytes, keyLength,
+                            cryptBytes,
+                            dataBytes, data.count,
+                            cryptBytes+kCCBlockSizeAES128, cryptLength,
+                            &numBytesEncrypted)
+                }
+            }
+        }
+
+        if UInt32(cryptStatus) == UInt32(kCCSuccess) {
+            cryptData.count = numBytesEncrypted + ivSize
+        }
+        else {
+            throw AESError.CryptorError(("Encryption failed", Int(cryptStatus)))
+        }
+
+        return cryptData//String(decoding: cryptData, as: UTF8.self);
+    }
+```
+- Decryption of data to show it in human readable format is done using the same hash key and AES128 algorithm:
+
+```
+func aesCBCDecrypt(data:Data, str_keyData:String) throws -> String? {
+        //let data:Data = str_data.data(using:String.Encoding.utf8)!
+        let keyData:Data = str_keyData.data(using:String.Encoding.utf8)!
+        let keyLength = keyData.count
+        let validKeyLengths = [kCCKeySizeAES128, kCCKeySizeAES192, kCCKeySizeAES256]
+        if (validKeyLengths.contains(keyLength) == false) {
+            throw AESError.KeyError(("Invalid key length", keyLength))
+        }
+
+        let ivSize = kCCBlockSizeAES128;
+        let clearLength = size_t(data.count - ivSize)
+        var clearData = Data(count:clearLength)
+
+        var numBytesDecrypted :size_t = 0
+        let options   = CCOptions(kCCOptionPKCS7Padding)
+
+        let cryptStatus = clearData.withUnsafeMutableBytes {cryptBytes in
+            data.withUnsafeBytes {dataBytes in
+                keyData.withUnsafeBytes {keyBytes in
+                    CCCrypt(CCOperation(kCCDecrypt),
+                            CCAlgorithm(kCCAlgorithmAES128),
+                            options,
+                            keyBytes, keyLength,
+                            dataBytes,
+                            dataBytes+kCCBlockSizeAES128, clearLength,
+                            cryptBytes, clearLength,
+                            &numBytesDecrypted)
+                }
+            }
+        }
+
+        if UInt32(cryptStatus) == UInt32(kCCSuccess) {
+            clearData.count = numBytesDecrypted
+        }
+        else {
+            throw AESError.CryptorError(("Decryption failed", Int(cryptStatus)))
+        }
+
+        return String(decoding: clearData, as: UTF8.self);
+    }
+```
