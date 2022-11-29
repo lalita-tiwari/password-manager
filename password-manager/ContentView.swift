@@ -145,6 +145,13 @@ struct ContentView: View {
                                     secrets =  secrets.replacingOccurrences(of: del_p+delimiter, with: "")
                                     secrets = secrets.replacingOccurrences(of: delimiter+del_p, with: "")
                                     secrets = secrets.replacingOccurrences(of: del_p, with: "")
+                                    do{ domain_data = try aesCBCEncrypt(str_data: domain,str_keyData: hash_key)
+                                        users_data = try aesCBCEncrypt(str_data: users,str_keyData: hash_key)
+                                        secrets_data = try aesCBCEncrypt(str_data: secrets,str_keyData: hash_key)
+                                        
+                                    } catch {
+                                           print(error)
+                                       }
                                 }
                             }
                         }
@@ -396,3 +403,4 @@ struct ContentView_Previews: PreviewProvider {
 
     }
 }
+
