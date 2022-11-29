@@ -1,12 +1,11 @@
 //
 //  password_managerTests.swift
-//  password-managerTests
+//  password_managerTests
 //
-//  Created by Lokesh Belwal on 11/29/22.
+//  Created by Lalita Tiwari on 9/20/22.
 //
 
 import XCTest
-@testable import password_manager
 
 final class password_managerTests: XCTestCase {
 
@@ -28,7 +27,7 @@ final class password_managerTests: XCTestCase {
 
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
-        self.measure {
+        measure {
             // Put the code you want to measure the time of here.
         }
     }

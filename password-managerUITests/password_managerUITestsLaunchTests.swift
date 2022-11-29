@@ -1,8 +1,8 @@
 //
 //  password_managerUITestsLaunchTests.swift
-//  password-managerUITests
+//  password_managerUITests
 //
-//  Created by Lokesh Belwal on 11/29/22.
+//  Created by Lalita Tiwari on 9/20/22.
 //
 
 import XCTest

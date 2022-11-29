@@ -1,8 +1,8 @@
 //
-//  password_managerApp.swift
-//  password-manager
+//  prj1App.swift
+//  prj1
 //
-//  Created by Lokesh Belwal on 11/29/22.
+//  Created by Lalita Tiwari on 9/20/22.
 //
 
 import SwiftUI
@@ -14,7 +14,8 @@ struct password_managerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(\.managedObjectContext, persistenceController.container.viewContext).navigationTitle("Password Vault")
         }
     }
 }
+    
